@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Portafoglio BNP</title>
+<style>
+body { font-family: -apple-system, system-ui, sans-serif; background: #F5F4F0; color: #1A1916; padding-bottom: 60px; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+.hdr { background: #fff; border-bottom: 1px solid #ddd; padding: 13px 15px 10px; position: sticky; top: 0; z-index: 99; }
+.hdr-row { display: flex; align-items: center; justify-content: space-between; }
+.logo { font: normal 20px Georgia, serif; color: #1A1916; }
+.logo b { color: #378ADD; font-weight: normal; }
+.hdate { font-size: 12px; color: #999; }
+
+.acts { display: flex; gap: 8px; padding: 12px 13px 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.acts::-webkit-scrollbar { display: none; }
+.btn { padding: 8px 13px; border-radius: 8px; font-size: 13px; border: 1px solid #ccc; cursor: pointer; background: #fff; color: #1A1916; -webkit-tap-highlight-color: transparent; white-space: nowrap; }
+.btn.pri { background: #378ADD; color: #fff; border-color: #378ADD; }
+
+.sbar { padding: 8px 13px; font-size: 13px; color: #888; display: flex; align-items: center; gap: 6px; min-height: 34px; }
+.spin { width: 13px; height: 13px; border: 2px solid #ddd; border-top-color: #378ADD; border-radius: 50%; animation: sp .8s linear infinite; flex-shrink: 0; display: none; }
+@keyframes sp { to { transform: rotate(360deg); } }
+
+.info-box { background: #E6F1FB; border: 1px solid #378ADD; border-radius: 10px; margin: 10px 13px 0; padding: 11px 13px; font-size: 13px; color: #185FA5; line-height: 1.5; display: none; }
+.warn-box { background: #FCEBEB; border: 1px solid #A32D2D; border-radius: 10px; margin: 10px 13px 0; padding: 11px 13px; font-size: 13px; color: #A32D2D; line-height: 1.5; display: none; }
+
+.tot-card { background: #fff; border: 1px solid #ddd; border-radius: 10px; margin: 10px 13px 0; padding: 16px; display: none; }
+.tot-lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .7px; color: #999; margin-bottom: 3px; }
+.tot-val { font: normal 32px Georgia, serif; letter-spacing: -1px; color: #1A1916; margin-bottom: 3px; }
+.tot-dlt { font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.pos { color: #3B6D11; } .neg { color: #A32D2D; } .neu { color: #999; }
+
+.cfg-panel { background: #FAEEDA; border: 1px solid #854F0B; border-radius: 10px; margin: 10px 13px 0; padding: 13px; display: none; }
+.cfg-h { font-size: 13px; font-weight: 600; color: #854F0B; margin-bottom: 9px; }
+.cfg-lbl { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 3px; margin-top: 8px; display: block; }
+.cfg-inp { width: 100%; padding: 7px 9px; border: 1px solid #bbb; border-radius: 7px; background: #fff; color: #1A1916; font-size: 13px; }
+.cfg-inp:focus { outline: none; border-color: #378ADD; }
+.cfg-hint { font-size: 11px; color: #999; margin-top: 3px; line-height: 1.4; }
+.cfg-row { display: flex; gap: 8px; margin-top: 11px; }
+
+.sec { font-size: 11px; text-transform: uppercase; letter-spacing: .7px; color: #999; padding: 13px 13px 5px; }
+
+.tc { background: #fff; border: 1px solid #ddd; border-radius: 10px; margin: 0 13px 7px; overflow: hidden; }
+.tc-top { display: flex; align-items: center; padding: 12px 13px; gap: 9px; }
+.tc-inf { flex: 1; min-width: 0; }
+.tc-nm { font-size: 14px; font-weight: 500; color: #1A1916; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 1px; }
+.tc-is { font-size: 11px; color: #999; }
+.tc-rt { text-align: right; flex-shrink: 0; }
+.tc-pz { font-size: 15px; font-weight: 500; color: #1A1916; }
+.tc-yt { font-size: 12px; color: #999; }
+.badge { display: inline-block; background: #FAEEDA; color: #854F0B; font-size: 10px; padding: 1px 5px; border-radius: 3px; margin-left: 4px; vertical-align: middle; font-weight: 600; }
+
+.tc-ext { border-top: 1px solid #eee; padding: 7px 13px; display: none; gap: 13px; flex-wrap: wrap; }
+.ei { display: flex; flex-direction: column; gap: 1px; }
+.el { font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: .3px; }
+.ev { font-size: 13px; color: #1A1916; }
+
+.qty-row { border-top: 1px solid #eee; padding: 7px 13px; display: flex; align-items: center; gap: 8px; }
+.qty-lbl { font-size: 12px; color: #666; white-space: nowrap; }
+.qty-inp { width: 105px; padding: 6px 8px; border: 1px solid #bbb; border-radius: 7px; background: #E6F1FB; color: #1A1916; font-size: 13px; font-family: -apple-system, system-ui, sans-serif; }
+.qty-inp:focus { outline: none; border-color: #378ADD; }
+.qty-mt { font-size: 13px; font-weight: 500; color: #378ADD; margin-left: auto; white-space: nowrap; }
+
+.man-row { border-top: 1px solid #eee; padding: 7px 13px; display: flex; align-items: center; gap: 8px; background: #FAEEDA; }
+.man-inp { width: 125px; padding: 6px 8px; border: 1px solid #854F0B; border-radius: 7px; background: #fff; color: #1A1916; font-size: 14px; font-family: -apple-system, system-ui, sans-serif; }
+.man-inp:focus { outline: none; border-color: #378ADD; }
+.man-lbl { font-size: 12px; color: #854F0B; }
+
+.gcrd { background: #fff; border: 1px solid #ddd; border-radius: 10px; margin: 0 13px; padding: 13px; }
+.gtit { font-size: 13px; color: #666; margin-bottom: 9px; }
+canvas { display: block; width: 100% !important; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-row">
+    <div class="logo">Portafoglio <b>BNP</b></div>
+    <div class="hdate" id="J-date">—</div>
+  </div>
+</div>
+
+<div class="acts">
+  <button class="btn pri" id="B-nav">↻ Aggiorna NAV</button>
+  <button class="btn" id="B-save">💾 Salva</button>
+  <button class="btn" id="B-cfg">⚙ Configura</button>
+  <button class="btn" id="B-sto">📈 Storico</button>
+</div>
+
+<div class="sbar"><div class="spin" id="J-spin"></div><span id="J-st">Pronto.</span></div>
+
+<div class="info-box" id="J-info">
+  <strong>Prima configurazione:</strong> tocca ⚙ Configura per collegare Google Sheets.
+  Senza configurazione i dati vengono salvati nel browser.
+</div>
+<div class="warn-box" id="J-warn"></div>
+
+<div class="tot-card" id="J-tot">
+  <div class="tot-lbl">Montante complessivo</div>
+  <div class="tot-val" id="J-tv">— €</div>
+  <div class="tot-dlt" id="J-td"><span class="neu">—</span></div>
+</div>
+
+<div class="cfg-panel" id="J-cfg">
+  <div class="cfg-h">⚙ Configurazione Google Sheets</div>
+  <label class="cfg-lbl">ID Google Sheets</label>
+  <input class="cfg-inp" id="C-sid" placeholder="1BxiMVs0XRA5nFMd..." />
+  <div class="cfg-hint">Dall'URL: docs.google.com/spreadsheets/d/<strong>ID</strong>/edit</div>
+  <label class="cfg-lbl">API Key Google</label>
+  <input class="cfg-inp" id="C-key" type="password" placeholder="AIza..." />
+  <div class="cfg-hint">console.cloud.google.com → API &amp; Servizi → Credenziali → Chiave API. Il foglio deve essere condiviso "Chiunque può visualizzare".</div>
+  <label class="cfg-lbl">Nome tab Quantità (esatto)</label>
+  <input class="cfg-inp" id="C-tab" value="Quantità" />
+  <div class="cfg-row">
+    <button class="btn pri" id="B-cfgsave">Salva e connetti</button>
+    <button class="btn" id="B-cfgclose">Chiudi</button>
+  </div>
+</div>
+
+<div class="sec">Titoli in portafoglio</div>
+<div id="J-list"></div>
+
+<div id="J-gcont" style="display:none; padding-top:13px;">
+  <div class="gcrd">
+    <div class="gtit">Andamento montante nel tempo</div>
+    <canvas id="J-cv" height="200"></canvas>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+var PORT = [
+  "XS3028948928","XS3006823754","XS3028949066","XS3099749486",
+  "LU2200548530","LU2200548886","FR0014012F01","LU2701240892",
+  "LU2955381632","LU2200551161","LU2662464713","LU0347711466",
+  "LU2200550353","LU1270636993","LU2200552219","LU2200551328"
+];
+
+var S = { nav:{}, qty:{}, man:{}, sto:[], cfg:{} };
+
+function stLoad() {
+  try { var d=JSON.parse(localStorage.getItem('bnp_v5')||'null'); if(!d)return; if(d.qty)S.qty=d.qty; if(d.man)S.man=d.man; if(d.sto)S.sto=d.sto; if(d.cfg)S.cfg=d.cfg; } catch(e){}
+}
+function stSave() {
+  try { localStorage.setItem('bnp_v5',JSON.stringify({qty:S.qty,man:S.man,sto:S.sto,cfg:S.cfg})); } catch(e){}
+}
+
+function byId(id) { return document.getElementById(id); }
+function setSt(msg, spin) { byId('J-st').textContent=msg; byId('J-spin').style.display=spin?'block':'none'; }
+function fmt(n, d) {
+  d = (d !== undefined) ? d : 2;
+  if (n==null||isNaN(n)) return '—';
+  return new Intl.NumberFormat('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d}).format(n);
+}
+function oggi() {
+  var now=new Date(), y=now.getFullYear(), m=String(now.getMonth()+1).padStart(2,'0'), g=String(now.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+g;
+}
+function isMan(isin) { return isin.charAt(0)==='X'&&isin.charAt(1)==='S'; }
+
+function pxEff(isin) {
+  var n=S.nav[isin]||{};
+  if (isMan(isin)) return (S.man[isin]!=null) ? S.man[isin] : (n.px!=null?n.px:null);
+  return n.px!=null ? n.px : null;
+}
+function totale() {
+  var t=0, ok=false;
+  for (var i=0;i<PORT.length;i++) { var p=pxEff(PORT[i]), q=S.qty[PORT[i]]||0; if(p!=null&&q>0){t+=p*q;ok=true;} }
+  return ok?t:null;
+}
+
+function pushSto() {
+  var t=totale(); if(t==null)return;
+  var d=oggi(), found=false;
+  for(var i=0;i<S.sto.length;i++){if(S.sto[i].d===d){S.sto[i].t=t;found=true;break;}}
+  if(!found) S.sto.push({d:d,t:t});
+  S.sto.sort(function(a,b){return a.d<b.d?-1:1;});
+  if(S.sto.length>180) S.sto=S.sto.slice(-180);
+}
+
+function renderTot() {
+  var t=totale(), card=byId('J-tot');
+  if(t==null){card.style.display='none';return;}
+  card.style.display='block';
+  byId('J-tv').textContent=fmt(t)+' €';
+  var el=byId('J-td'), ieri=null;
+  if(S.sto.length>=2) ieri=S.sto[S.sto.length-2].t;
+  if(ieri){
+    var diff=t-ieri, pct=(diff/ieri)*100, cls=diff>=0?'pos':'neg', seg=diff>=0?'+':'';
+    el.innerHTML='<span class="'+cls+'">'+seg+fmt(diff)+' €&nbsp;&nbsp;'+seg+fmt(pct,3)+'%</span><span class="neu" style="font-size:12px">vs ieri</span>';
+  } else el.innerHTML='<span class="neu">Primo rilevamento</span>';
+}
+
+function refreshCard(isin) {
+  var n=S.nav[isin]||{}, p=pxEff(isin), q=S.qty[isin]||0, m=(p!=null&&q>0)?p*q:null;
+  var ne=byId('nm-'+isin); if(ne&&n.nome) ne.innerHTML=n.nome.replace(/</g,'&lt;')+(isMan(isin)?'<span class="badge">manuale</span>':'');
+  var pe=byId('px-'+isin); if(pe) pe.textContent=p!=null?fmt(p,4)+' '+(n.div||'EUR'):'—';
+  var ye=byId('yt-'+isin);
+  if(ye){if(n.ytd!=null){var yc=n.ytd>=0?'pos':'neg';ye.innerHTML='<span class="'+yc+'">YTD '+(n.ytd>=0?'+':'')+fmt(n.ytd,2)+'%</span>';}else{ye.textContent=n.dt||'—';ye.style.color='#999';}}
+  var ee=byId('ex-'+isin); if(ee) ee.style.display=p!=null?'flex':'none';
+  var qd=byId('qd-'+isin); if(qd) qd.textContent=q?fmt(q,3):'—';
+  var md=byId('md-'+isin); if(md) md.textContent=m!=null?fmt(m)+' €':'—';
+  var dv=byId('dv-'+isin); if(dv) dv.textContent=n.div||'EUR';
+  var qm=byId('qm-'+isin); if(qm) qm.textContent=m!=null?fmt(m)+' €':'';
+}
+function refreshAll() { for(var i=0;i<PORT.length;i++) refreshCard(PORT[i]); }
+
+function buildCards() {
+  var list=byId('J-list'); list.innerHTML='';
+  for (var i=0;i<PORT.length;i++) {
+    (function(isin) {
+      var man=isMan(isin), div=document.createElement('div');
+      div.className='tc'; div.id='card-'+isin;
+      div.innerHTML=
+        '<div class="tc-top">'
+          +'<div class="tc-inf">'
+            +'<div class="tc-nm" id="nm-'+isin+'">'+isin+(man?'<span class="badge">manuale</span>':'')+'</div>'
+            +'<div class="tc-is">'+isin+'</div>'
+          +'</div>'
+          +'<div class="tc-rt">'
+            +'<div class="tc-pz" id="px-'+isin+'">—</div>'
+            +'<div class="tc-yt" id="yt-'+isin+'">—</div>'
+          +'</div>'
+        +'</div>'
+        +'<div class="tc-ext" id="ex-'+isin+'">'
+          +'<div class="ei"><span class="el">Quantità</span><span class="ev" id="qd-'+isin+'">—</span></div>'
+          +'<div class="ei"><span class="el">Montante</span><span class="ev" id="md-'+isin+'" style="color:#378ADD">—</span></div>'
+          +'<div class="ei"><span class="el">Divisa</span><span class="ev" id="dv-'+isin+'">EUR</span></div>'
+        +'</div>'
+        +'<div class="qty-row">'
+          +'<span class="qty-lbl">Quote:</span>'
+          +'<input class="qty-inp" type="number" step="0.001" placeholder="0.000" id="qi-'+isin+'" />'
+          +'<span class="qty-mt" id="qm-'+isin+'"></span>'
+        +'</div>'
+        +(man?'<div class="man-row"><span class="man-lbl">NAV manuale (€):</span><input class="man-inp" type="number" step="0.0001" placeholder="0.0000" id="mi-'+isin+'" /></div>':'');
+      list.appendChild(div);
+
+      var qi=byId('qi-'+isin);
+      qi.value=S.qty[isin]?String(S.qty[isin]):'';
+      qi.addEventListener('change', function(){
+        var v=parseFloat(qi.value); S.qty[isin]=isNaN(v)?0:v;
+        refreshCard(isin); renderTot(); stSave();
+      });
+
+      if (man) {
+        var mi=byId('mi-'+isin);
+        mi.value=S.man[isin]!=null?String(S.man[isin]):'';
+        mi.addEventListener('change', function(){
+          var v=parseFloat(mi.value); S.man[isin]=isNaN(v)?null:v;
+          refreshCard(isin); renderTot(); stSave();
+        });
+      }
+    })(PORT[i]);
+  }
+}
+
+function fetchNav() {
+  setSt('Scarico NAV BNP Paribas...', true);
+  var wn=byId('J-warn'); wn.style.display='none';
+  var BNP='https://api.bnpparibas-am.com/push/sharesearchv2/PV_IT-FSE/ITA';
+
+  function fetchTO(url, opts, ms) {
+    return new Promise(function(res,rej){
+      var tid=setTimeout(function(){rej(new Error('timeout'));},ms);
+      fetch(url,opts||{}).then(function(r){clearTimeout(tid);res(r);}).catch(function(e){clearTimeout(tid);rej(e);});
+    });
+  }
+
+  function parseShares(data) {
+    if(!data||!data.shares) return 0;
+    var cnt=0;
+    for(var i=0;i<data.shares.length;i++){
+      var s=data.shares[i], isin=s.isin_code;
+      if(!isin) continue;
+      var inPort=false; for(var j=0;j<PORT.length;j++){if(PORT[j]===isin){inPort=true;break;}}
+      if(!inPort) continue;
+      var nv=s.nav||{}, ytd=null;
+      try{ytd=s.timed_performances.performance_ytd.value;}catch(e){}
+      S.nav[isin]={nome:s.legal_name||s.compart_name||isin, div:s.val_currency||s.base_currency||'EUR', px:nv.value!=null?parseFloat(nv.value):null, dt:nv.date||'', ytd:ytd};
+      cnt++;
+    }
+    return cnt;
+  }
+
+  fetchTO(BNP,{headers:{'Accept':'application/json','Origin':'https://www.bnpparibas-am.com'}},10000)
+    .then(function(r){return r.json();})
+    .then(function(data){
+      var cnt=parseShares(data);
+      setSt(cnt+' NAV caricati – '+oggi());
+      pushSto(); stSave(); refreshAll(); renderTot();
+    })
+    .catch(function(){
+      var PRX='https://api.allorigins.win/raw?url='+encodeURIComponent(BNP);
+      wn.style.display='block'; wn.textContent='API BNP bloccata, uso proxy CORS...';
+      fetchTO(PRX,{},15000)
+        .then(function(r){return r.json();})
+        .then(function(data){
+          var cnt=parseShares(data);
+          setSt(cnt+' NAV caricati (proxy) – '+oggi());
+          wn.style.display='none'; pushSto(); stSave(); refreshAll(); renderTot();
+        })
+        .catch(function(e){
+          setSt('Errore: impossibile scaricare NAV.');
+          wn.style.display='block'; wn.textContent='Impossibile raggiungere BNP Paribas. Controlla la connessione e riprova.';
+        });
+    });
+}
+
+function sheetsLoad() {
+  var sid=S.cfg.sid, key=S.cfg.key, tab=S.cfg.tab||'Quantità';
+  if(!sid||!key) return;
+  setSt('Carico quantità da Google Sheets...', true);
+  fetch('https://sheets.googleapis.com/v4/spreadsheets/'+sid+'/values/'+encodeURIComponent(tab)+'!A:C?key='+key)
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var rows=d.values||[], cnt=0;
+      for(var i=1;i<rows.length;i++){
+        var isin=(rows[i][0]||'').trim(), q=parseFloat((rows[i][2]||'').replace(',','.'));
+        var inPort=false; for(var j=0;j<PORT.length;j++){if(PORT[j]===isin){inPort=true;break;}}
+        if(inPort&&!isNaN(q)){
+          S.qty[isin]=q;
+          var qi=byId('qi-'+isin); if(qi) qi.value=String(q);
+          cnt++;
+        }
+      }
+      setSt(cnt+' quantità caricate da Sheets.'); stSave(); refreshAll(); renderTot();
+    })
+    .catch(function(e){setSt('Errore Sheets: '+e.message);});
+}
+
+function toggleCfg(){
+  var p=byId('J-cfg');
+  if(p.style.display==='block'){p.style.display='none';}
+  else{byId('C-sid').value=S.cfg.sid||'';byId('C-key').value=S.cfg.key||'';byId('C-tab').value=S.cfg.tab||'Quantità';p.style.display='block';}
+}
+function saveCfg(){
+  S.cfg={sid:byId('C-sid').value.trim(),key:byId('C-key').value.trim(),tab:byId('C-tab').value.trim()||'Quantità'};
+  stSave(); byId('J-cfg').style.display='none';
+  if(S.cfg.sid&&S.cfg.key) sheetsLoad();
+}
+
+var chartInst=null;
+function toggleSto(){
+  var c=byId('J-gcont');
+  if(c.style.display==='none'){c.style.display='block';renderGraf();}else{c.style.display='none';}
+}
+function renderGraf(){
+  var cv=byId('J-cv'); if(!S.sto.length)return;
+  if(chartInst){chartInst.destroy();chartInst=null;}
+  chartInst=new Chart(cv,{
+    type:'line',
+    data:{labels:S.sto.map(function(r){return r.d.slice(5);}),
+      datasets:[{data:S.sto.map(function(r){return r.t;}),borderColor:'#185FA5',borderWidth:2,
+        pointRadius:S.sto.length<30?3:0,pointBackgroundColor:'#185FA5',
+        fill:true,backgroundColor:'rgba(24,95,165,0.06)',tension:0.35}]},
+    options:{responsive:true,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return fmt(c.raw)+' €';}}}},
+      scales:{
+        x:{ticks:{color:'#888',font:{size:10},maxTicksLimit:8},grid:{color:'rgba(0,0,0,0.06)'}},
+        y:{ticks:{color:'#888',font:{size:10},callback:function(v){return (v/1000).toFixed(0)+'k €';}},grid:{color:'rgba(0,0,0,0.06)'}}
+      }}
+  });
+}
+
+byId('B-nav').addEventListener('click', fetchNav);
+byId('B-save').addEventListener('click', function(){stSave();setSt('Dati salvati nel browser.');});
+byId('B-cfg').addEventListener('click', toggleCfg);
+byId('B-sto').addEventListener('click', toggleSto);
+byId('B-cfgsave').addEventListener('click', saveCfg);
+byId('B-cfgclose').addEventListener('click', function(){byId('J-cfg').style.display='none';});
+
+// AVVIO
+byId('J-date').textContent=oggi();
+stLoad();
+buildCards();
+refreshAll();
+renderTot();
+if(!S.cfg.sid){
+  byId('J-info').style.display='block';
+  setSt('Pronto. Tocca "Aggiorna NAV" per scaricare le quotazioni.');
+} else {
+  sheetsLoad();
+  setSt('Configurazione trovata. Tocca "Aggiorna NAV" per aggiornare.');
+}
+</script>
+</body>
+</html>
