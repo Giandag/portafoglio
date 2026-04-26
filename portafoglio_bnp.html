@@ -87,6 +87,7 @@ canvas { display: block; width: 100% !important; }
   <button class="btn" id="B-save">💾 Salva</button>
   <button class="btn" id="B-cfg">⚙ Configura</button>
   <button class="btn" id="B-sto">📈 Storico</button>
+  <button class="btn" id="B-xls">📥 Excel</button>
 </div>
 
 <div class="sbar"><div class="spin" id="J-spin"></div><span id="J-st">Pronto.</span></div>
@@ -130,6 +131,7 @@ canvas { display: block; width: 100% !important; }
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 var PORT = [
   "XS3028948928","XS3006823754","XS3028949066","XS3099749486",
@@ -364,10 +366,61 @@ function renderGraf(){
   });
 }
 
+function scaricaExcel() {
+  var wb = XLSX.utils.book_new();
+
+  // ── Foglio 1: Portafoglio ─────────────────────────────────────────
+  var righe = [['ISIN','Nome','Divisa','NAV','Data NAV','Quantità','Montante €','YTD %','Tipo']];
+  for (var i=0; i<PORT.length; i++) {
+    var isin=PORT[i], n=S.nav[isin]||{}, p=pxEff(isin), q=S.qty[isin]||0;
+    var m=(p!=null&&q>0)?Math.round(p*q*100)/100:null;
+    righe.push([
+      isin,
+      n.nome||'',
+      n.div||'EUR',
+      p!=null?p:null,
+      n.dt||'',
+      q||null,
+      m,
+      n.ytd!=null?n.ytd:null,
+      isMan(isin)?'Manuale':'BNP API'
+    ]);
+  }
+  // Riga totale
+  var tot=totale();
+  righe.push(['','','','','','TOTALE', tot!=null?Math.round(tot*100)/100:null,'','']);
+
+  var ws1 = XLSX.utils.aoa_to_sheet(righe);
+  // Larghezze colonne
+  ws1['!cols'] = [{wch:14},{wch:40},{wch:8},{wch:12},{wch:12},{wch:12},{wch:14},{wch:8},{wch:10}];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Portafoglio');
+
+  // ── Foglio 2: Storico totale ──────────────────────────────────────
+  if (S.sto.length > 0) {
+    var sto = [['Data','Totale €','Delta €','Delta %']];
+    for (var j=0; j<S.sto.length; j++) {
+      var r=S.sto[j];
+      var prev=j>0?S.sto[j-1].t:null;
+      var de=prev!=null?Math.round((r.t-prev)*100)/100:null;
+      var dp=prev!=null?Math.round((r.t-prev)/prev*10000)/100:null;
+      sto.push([r.d, Math.round(r.t*100)/100, de, dp]);
+    }
+    var ws2 = XLSX.utils.aoa_to_sheet(sto);
+    ws2['!cols'] = [{wch:12},{wch:14},{wch:12},{wch:10}];
+    XLSX.utils.book_append_sheet(wb, ws2, 'Storico');
+  }
+
+  // ── Download ──────────────────────────────────────────────────────
+  var nome = 'portafoglio_' + oggi() + '.xlsx';
+  XLSX.writeFile(wb, nome);
+  setSt('File Excel scaricato: ' + nome);
+}
+
 byId('B-nav').addEventListener('click', fetchNav);
 byId('B-save').addEventListener('click', function(){stSave();setSt('Dati salvati nel browser.');});
 byId('B-cfg').addEventListener('click', toggleCfg);
 byId('B-sto').addEventListener('click', toggleSto);
+byId('B-xls').addEventListener('click', scaricaExcel);
 byId('B-cfgsave').addEventListener('click', saveCfg);
 byId('B-cfgclose').addEventListener('click', function(){byId('J-cfg').style.display='none';});
 
@@ -386,5 +439,4 @@ if(!S.cfg.sid){
 }
 </script>
 </body>
-      
 </html>
