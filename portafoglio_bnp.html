@@ -370,40 +370,86 @@ function scaricaExcel() {
   var wb = XLSX.utils.book_new();
 
   // ── Foglio 1: Portafoglio ─────────────────────────────────────────
-  var righe = [['ISIN','Nome','Divisa','NAV','Data NAV','Quantità','Montante €','YTD %','Tipo']];
+  // Colonne: ISIN | Descrizione | Divisa | NAV | Quantità | Montante (€) |
+  //          Var. NAV (%) | Var. Mont. (€) | Var. Mont. (%) | Perf. YTD % | Data NAV | Fonte
+
+  // Recupera montante di ieri dallo storico per calcolare variazioni
+  var totOggi  = totale();
+  var totIeri  = S.sto.length >= 2 ? S.sto[S.sto.length-2].t : null;
+  var ratioVar = (totIeri && totOggi) ? totOggi/totIeri : null;
+
+  var intestazione = [
+    'ISIN','Descrizione','Divisa','NAV','Quantità','Montante (€)',
+    'Var. NAV (%)','Var. Mont. (€)','Var. Mont. (%)','Perf. YTD %','Data NAV','Fonte'
+  ];
+  var righe = [intestazione];
+
+  var totMont = 0;
+  var totVarMontE = 0;
+
   for (var i=0; i<PORT.length; i++) {
-    var isin=PORT[i], n=S.nav[isin]||{}, p=pxEff(isin), q=S.qty[isin]||0;
-    var m=(p!=null&&q>0)?Math.round(p*q*100)/100:null;
+    var isin = PORT[i];
+    var n    = S.nav[isin] || {};
+    var p    = pxEff(isin);
+    var q    = S.qty[isin] || 0;
+    var mont = (p != null && q > 0) ? p * q : null;
+
+    // Var. NAV %: YTD è l'unico dato disponibile dall'API per la variazione
+    // Var. Mont: stimata proporzionalmente dalla variazione totale di portafoglio
+    var varNavPct  = n.ytd != null ? n.ytd : null;
+    var varMontE   = null;
+    var varMontPct = null;
+    if (mont != null && ratioVar != null) {
+      var montIeri = mont / ratioVar;
+      varMontE   = mont - montIeri;
+      varMontPct = (varMontE / montIeri) * 100;
+    }
+
+    if (mont != null) totMont += mont;
+    if (varMontE != null) totVarMontE += varMontE;
+
     righe.push([
       isin,
-      n.nome||'',
-      n.div||'EUR',
-      p!=null?p:null,
-      n.dt||'',
-      q||null,
-      m,
-      n.ytd!=null?n.ytd:null,
-      isMan(isin)?'Manuale':'BNP API'
+      n.nome || '',
+      n.div  || 'EUR',
+      p  != null ? p  : '',
+      q  > 0    ? q  : '',
+      mont != null ? mont : '',
+      varNavPct  != null ? varNavPct  : '',
+      varMontE   != null ? varMontE   : '',
+      varMontPct != null ? varMontPct : '',
+      n.ytd != null ? n.ytd : '',
+      n.dt  || '',
+      isMan(isin) ? 'Manuale' : 'BNP API'
     ]);
   }
+
   // Riga totale
-  var tot=totale();
-  righe.push(['','','','','','TOTALE', tot!=null?Math.round(tot*100)/100:null,'','']);
+  var totVarMontPct = (totIeri && totIeri > 0) ? ((totMont - totIeri) / totIeri * 100) : '';
+  righe.push([
+    '','TOTALE','','','',
+    totMont > 0 ? totMont : '',
+    '','',
+    totVarMontPct !== '' ? totVarMontPct : '',
+    '','',''
+  ]);
 
   var ws1 = XLSX.utils.aoa_to_sheet(righe);
-  // Larghezze colonne
-  ws1['!cols'] = [{wch:14},{wch:40},{wch:8},{wch:12},{wch:12},{wch:12},{wch:14},{wch:8},{wch:10}];
+  ws1['!cols'] = [
+    {wch:14},{wch:42},{wch:7},{wch:12},{wch:11},{wch:14},
+    {wch:13},{wch:14},{wch:14},{wch:12},{wch:12},{wch:10}
+  ];
   XLSX.utils.book_append_sheet(wb, ws1, 'Portafoglio');
 
   // ── Foglio 2: Storico totale ──────────────────────────────────────
   if (S.sto.length > 0) {
     var sto = [['Data','Totale €','Delta €','Delta %']];
     for (var j=0; j<S.sto.length; j++) {
-      var r=S.sto[j];
-      var prev=j>0?S.sto[j-1].t:null;
-      var de=prev!=null?Math.round((r.t-prev)*100)/100:null;
-      var dp=prev!=null?Math.round((r.t-prev)/prev*10000)/100:null;
-      sto.push([r.d, Math.round(r.t*100)/100, de, dp]);
+      var r    = S.sto[j];
+      var prev = j > 0 ? S.sto[j-1].t : null;
+      var de   = prev != null ? r.t - prev : '';
+      var dp   = prev != null ? (r.t - prev) / prev * 100 : '';
+      sto.push([r.d, r.t, de, dp]);
     }
     var ws2 = XLSX.utils.aoa_to_sheet(sto);
     ws2['!cols'] = [{wch:12},{wch:14},{wch:12},{wch:10}];
@@ -413,7 +459,7 @@ function scaricaExcel() {
   // ── Download ──────────────────────────────────────────────────────
   var nome = 'portafoglio_' + oggi() + '.xlsx';
   XLSX.writeFile(wb, nome);
-  setSt('File Excel scaricato: ' + nome);
+  setSt('Excel scaricato: ' + nome);
 }
 
 byId('B-nav').addEventListener('click', fetchNav);
